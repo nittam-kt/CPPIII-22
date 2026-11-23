@@ -29,12 +29,12 @@ namespace
 {
     constexpr const char* map_[] = {
         "###########",
-        "#.........#",
+        "#.....E...#",
+        "#..E...C..#",
+        "#...E.....#",
+        "#..C...E..#",
         "#......C..#",
-        "#.........#",
-        "#..C......#",
-        "#......C..#",
-        "#....C....#",
+        "#.E..C..E.#",
         "#.........#",
         "###########"
     };
@@ -55,7 +55,8 @@ void MainGame::createMap()
     floorMat->shader->compile<VertexPNT>(u8"resource/AlbedoShadeSpec.hlsl");
     floorMat->color = Color(0.85f, 0.8f, 0.85f);
     coinMat->shader->compile<VertexPN>(u8"resource/ShadeSpec.hlsl");
-    coinMat->color = Color(1.0f, 0.9f, 0.1f);
+    coinMat->color = Color(1.0f, 0.9f, 0.1f, 0.7f);
+//    coinMat->renderingMode = RenderingMode_Transparent;
 
     // 床テクスチャ作成
     auto floorTex = std::make_shared<Texture>();
@@ -66,6 +67,10 @@ void MainGame::createMap()
     auto wallTex = std::make_shared<Texture>();
     wallTex->Load(u8"resource/wall.png");
     wallMat->AddTexture(std::move(wallTex));
+
+    // 敵テクスチャ作成
+    auto enemyTex = std::make_shared<Texture>();
+    enemyTex->Load(u8"Resource/Pumpkin-Universal_A_Alb.png");
 
     // マップ作成
     auto map = make_unique<GameObject>();
@@ -100,8 +105,8 @@ void MainGame::createMap()
                     CubeRenderer::create<VertexPNT>(wallMat),
                     move(rb),
                     make_unique<AABBCollider>());
-                wall->transform->localScale = Vector3(2, 2, 2);
-                wall->transform->localPosition = Vector3(j * 2 - mapWidth + 1.0f, 1.0f, i * 2 - mapHeight + 1.0f);
+                wall->transform->localScale = Vector3(2, 1, 2);
+                wall->transform->localPosition = Vector3(j * 2 - mapWidth + 1.0f, 0.5f, i * 2 - mapHeight + 1.0f);
 
                 // 親をマップにする
                 Transform::SetParent(move(wall), map->transform);
@@ -130,6 +135,34 @@ void MainGame::createMap()
                 // コインの親をマップにする
                 Transform::SetParent(move(coin), map->transform);
             }
+            case 'E':
+            {
+                // 敵オブジェクトを作成
+                auto enemy = make_unique<GameObject>(u8"敵",
+                    make_unique<GltfModel>(),
+                    make_unique<Rigidbody>(),
+                    make_unique<SphereCollider>(Vector3(0, 0.4f, 0), 1.2f)
+                );
+                auto model = enemy->GetComponent<GltfModel>();
+                model->Load<VertexPNT>(
+                    u8"Resource/Pumpkin-carved-lit-a.glb",
+                    u8"Resource/AlbedoShade.hlsl",
+                    enemyTex);
+
+                // マテリアルカラーを半透明にする
+                for(auto& mat : model->GetMaterials())
+                {
+                    (mat.second)->color = Color(1, 1, 1, 0.6f);
+//                    (mat.second)->renderingMode = RenderingMode_Transparent;
+                }
+
+                enemy->transform->localPosition = Vector3(j * 2 - mapWidth + 1.0f, 1.0f, i * 2 - mapHeight + 1.0f);
+                enemy->transform->localScale = Vector3(3, 3, 3);
+
+                // 敵の親をマップにする
+                Transform::SetParent(move(enemy), map->transform);
+            }
+            break;
             default:
                 break;
             }

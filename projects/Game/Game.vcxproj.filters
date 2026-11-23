@@ -134,6 +134,9 @@
     <CopyFileToFolders Include="game.ico">
       <Filter>リソース ファイル</Filter>
     </CopyFileToFolders>
+    <CopyFileToFolders Include="..\resource\Pumpkin-Universal_A_Alb.png">
+      <Filter>リソース ファイル</Filter>
+    </CopyFileToFolders>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="リソース ファイル">
